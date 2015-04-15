@@ -10,6 +10,34 @@ namespace RestSharp.IntegrationTests
         private const string BASE_URL = "http://localhost:8888/";
 
         [Fact]
+        public void ChangingRequestParametersExecutesCorrectRequest()
+        {
+            // Arrange
+            IRestResponse firstResponse;
+            IRestResponse secondResponse;
+            var request = new RestRequest("testResource", Method.POST);
+            request.AddParameter("test", "testParamVal");
+
+            // Act
+            using (SimpleServer.Create(BASE_URL, Handlers.Echo))
+            {
+                var client = new RestClient(BASE_URL);
+                firstResponse = client.Execute(request);
+            }
+
+            using (SimpleServer.Create(BASE_URL, Handlers.Echo))
+            {
+                var client = new RestClient(BASE_URL);
+                request.Parameters.RemoveAt(0);
+                request.AddParameter("testTwo", "testParamVal");
+                secondResponse = client.Execute(request);
+            }
+
+            // Assert
+            Assert.NotEqual(firstResponse.Content, secondResponse.Content);
+        }
+
+        [Fact]
         public void Can_Not_Be_Added_To_GET_Request()
         {
             const Method httpMethod = Method.GET;
